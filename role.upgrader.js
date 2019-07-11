@@ -23,7 +23,7 @@ var role_upgrader = {
         this.counting();
         if(this.bot_count < 1 && !Game.spawns.Spawn1.spawning && Game.spawns.Spawn1.energy >=300){
             console.log('Spawning New upgrader: ' + this.bot_name + this.bot_count.toString());
-            var spawnattemptvalue = Game.spawns.Spawn1.spawnCreep(this.bot_type,this.bot_name + this.bot_number,{memory: {role: 'upgrader'}});
+            var spawnattemptvalue = Game.spawns.Spawn1.spawnCreep(this.bot_type,this.bot_name + this.bot_number,{memory: {role: 'upgrader', upgrading: false}});
             this.bot_number ++;
             textspawn.SpawnText(spawnattemptvalue);
         }
@@ -34,7 +34,7 @@ var role_upgrader = {
             for(var unit in this.bot_upgraders){
                 var creep = this.bot_upgraders[unit];
                 
-                if(_.sum(creep.carry) < creep.carryCapacity){
+                if(_.sum(creep.carry) < creep.carryCapacity && !creep.memory.upgrading){
                    
                     //May not be closest
                     var sources = creep.room.find(FIND_SOURCES);
@@ -46,15 +46,26 @@ var role_upgrader = {
                     }
                     
                 }
-                else if (_.sum(creep.carry) === creep.carryCapacity){
+
+
+                else if (_.sum(creep.carry) === creep.carryCapacity && !creep.memory.upgrading){
                     
                         
                         creep.say('⚡ upgrade');
                         if(creep.upgradeController(creep.room.controller) === ERR_NOT_IN_RANGE) {
                             creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
                         }
-                    
-                    
+                        else{
+                            creep.memory.upgrading = true;
+                        }
+                }
+                else{
+                    if(_.sum(creep.carry) === 0){
+                        creep.memory.upgrading = false;
+                    }
+                    else{
+                        creep.upgradeController(creep.room.controller)
+                    }
 
                 }
                     
